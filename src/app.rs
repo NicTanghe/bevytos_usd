@@ -67,12 +67,11 @@ pub struct TextEvent {
     pub text: String,
 }
 
+#[cfg(target_arch = "wasm32")]
 #[component]
-fn CanvasPage() -> impl IntoView {
-    // 🚀 1. Event bridge between Leptos and Bevy
+pub fn CanvasPage() -> impl IntoView {
     let (text_event_sender, bevy_text_receiver) = event_l2b::<TextEvent>();
 
-    // 🚀 2. Leptos -> Bevy: send input events
     let on_input = move |evt| {
         text_event_sender
             .send(TextEvent {
@@ -81,12 +80,18 @@ fn CanvasPage() -> impl IntoView {
             .ok();
     };
 
-    // 🚀 3. Render input + BevyCanvas
-    // 4. old <BevyCanvas init=move || init_bevy_app(bevy_text_receiver) />
     view! {
         <h2>"Bevy Canvas Integration"</h2>
         <input type="text" on:input=on_input />
-
         <BevyCanvas init=move || crate::usd_viewer::usd_viewer() />
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[component]
+pub fn CanvasPage() -> impl IntoView {
+    // This version is compiled for the server
+    view! {
+        <p>"Canvas only available in the browser"</p>
     }
 }

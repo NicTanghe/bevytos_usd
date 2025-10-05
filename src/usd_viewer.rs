@@ -5,6 +5,11 @@ use crate::usdish::meshdata_to_bevy;
 
 use crate::open_rs_loader::{fetch_stage_usd, MeshInstance};
 
+use bevy::asset::AssetMetaCheck;
+use bevy::prelude::*;
+use bevy::window::WindowResolution;
+use leptos_bevy_canvas::prelude::*;
+
 use bevy::{
     pbr::{CascadeShadowConfigBuilder, DirectionalLightShadowMap},
     prelude::*,
@@ -14,9 +19,27 @@ use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 
 const USD_STAGE_PATH: &str = "C:/Users/Nicol/CGI/year5/slay/usd/helmet_bus_3.usdc";
 
+pub const RENDER_WIDTH: f32 = 600.0;
+pub const RENDER_HEIGHT: f32 = 500.0;
+
+#[cfg(target_arch = "wasm32")]
 pub fn usd_viewer() -> App {
     let mut app = App::new();
-    app.add_plugins(DefaultPlugins)
+    app.add_plugins((DefaultPlugins
+        .set(AssetPlugin {
+            meta_check: AssetMetaCheck::Never,
+            ..default()
+        })
+        .set(WindowPlugin {
+            primary_window: Some(Window {
+                focused: false,
+                fit_canvas_to_parent: true,
+                canvas: Some("#bevy_canvas".into()),
+                resolution: WindowResolution::new(RENDER_WIDTH, RENDER_HEIGHT),
+                ..default()
+            }),
+            ..default()
+        }),))
         .add_plugins(PanOrbitCameraPlugin)
         .insert_resource(DirectionalLightShadowMap { size: 8192 })
         .add_systems(Startup, setup);
